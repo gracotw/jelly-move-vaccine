@@ -4,9 +4,398 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="author" content="GracoTW">
     <meta name="copyright" content="Public Domain">
-    <title>Mr. Jelly Moves Vaccine</title>
+    <title>果凍先生搬疫苗</title>
+    <style>
+    	* { padding: 0; margin: 0; }
+    	canvas { background: #eee; display: block; margin: 0 auto; }
+    </style>
   </head>
   <body>
-    <h1>Test</h1>
+<!--
+-->
+<canvas id="myCanvas" width="100%" height="100%"></canvas>
+
+<script>
+  // JavaScript code goes here
+  var canvas = document.getElementById("myCanvas");
+  var ctx = canvas.getContext("2d");
+  var stage = 0;
+  var stage0bgImage = new Image();
+  var stage1bgImage = new Image();
+  var stage3bgImage = new Image();
+  var stage4bgImage = new Image();
+  var jellyImage = new Image();
+  var vaccineImage = new Image();
+  var tsaiImage = new Image();
+  var tsaiBulletImage = new Image();
+  var chenImage = new Image();
+  var chenImage1 = new Image();
+  var chenBulletImage = new Image();
+  var explodeImage = new Image();
+  var keyMap = [ 0, 0, 0, 0 ];
+  var jellyPos = [ 0, 0 ];
+  var score = 0;
+  const stage1ImportX = 0.881736;
+  const stage1ExportX = 0.119760;
+  const stage1TalubanY = 0.185007;
+  var gotVaccine = false;
+  var tsaiPos = [ 0.4, 0.12673 ];
+  var tsaiStage = 0;
+  var tsaiCounter = 100;
+  var tsaiDirection = 1;
+  var tsaiBulletList = [];
+  var stage2Counter = 120;
+  var chenPos = [ 0.6, 0.12673 ];
+  var chenStage = 0;
+  var chenCounter = 100;
+  var chenDirection = -1;
+  var chenBulletList = [];
+  const maxScore = 1500;
+
+  stage0bgImage.src = "stage0bgimage.png";
+  stage1bgImage.src = "taluban_customs.png";
+  stage3bgImage.src = "wonkytsai-u-turn.png";
+  stage4bgImage.src = "chinese_new_year_border_dragon_1.png";
+  jellyImage.src = "jelly.png";
+  vaccineImage.src = "covid19vaccine-j4p4n.png";
+  tsaiImage.src = "wonkytsairactopaminepig.png";
+  tsaiBulletImage.src = "wonkytsairactopaminepig_nose.png";
+  explodeImage.src = "Prismatic-Unilateral-Explosion-2.png";
+  chenImage.src = "deathknellchen.png";
+  chenImage1.src = "deathknellchen_1.png";
+  chenBulletImage.src = "coronavirus2-0.png";
+
+  function doKeyDown(e) {
+      if (e.code == "KeyW" || e.code == "ArrowUp") {
+	  keyMap[0] = 1;
+      } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+	  keyMap[1] = 1;
+      } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+	  keyMap[2] = 1;
+      } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+	  keyMap[3] = 1;
+      }
+  }
+
+  function doKeyUp(e) {
+      if (e.code == "KeyW" || e.code == "ArrowUp") {
+	  keyMap[0] = 0;
+      } else if (e.code == "KeyA" || e.code == "ArrowLeft") {
+	  keyMap[1] = 0;
+      } else if (e.code == "KeyS" || e.code == "ArrowDown") {
+	  keyMap[2] = 0;
+      } else if (e.code == "KeyD" || e.code == "ArrowRight") {
+	  keyMap[3] = 0;
+      }
+  }
+  
+  function doMouseDown(e) {
+      var bbox = canvas.getBoundingClientRect();
+      var x = e.x - bbox.left *(canvas.width / bbox.width);
+      var y = e.y - bbox.top  * (canvas.height / bbox.height);
+
+      var xF = x/canvas.width;
+      var yF = y/canvas.height;
+
+      if (stage == 0) {
+	  if (0.308383 <= xF && xF <= 0.706586 
+	      && 0.620414 <= yF && yF <= 0.917065 ) {
+	      initStage1();
+	      stage = 1;
+	  }
+      } else if (stage == 3) {
+	  if (0.250950 <= xF && xF <= 0.756653
+	      && 0.719754 <= yF && yF <= 0.830015) {
+	      initStage1();
+	      stage = 1;
+	  }
+      }
+      console.log("x = "+xF+" y = "+yF);
+  }
+
+  function drawStage0() {
+      ctx.drawImage(stage0bgImage, 0, 0, ctx.canvas.width, ctx.canvas.height);
+  }
+
+  function drawImageOnCenterXY(img, pos, s) {
+      var imgW = ctx.canvas.width * s[0];
+      var imgH = ctx.canvas.height * s[1];
+      ctx.drawImage(img, pos[0]*ctx.canvas.width - imgW/2,
+		    pos[1]*ctx.canvas.height - imgH/2,
+		    imgW,
+		    imgH);
+  }
+
+  function initStage1() {
+      jellyPos[0] = 0.93263473;
+      jellyPos[1] = 0.89154704;
+      score = 0;
+      gotVaccine = false;
+      tsaiStage = 0;
+      tsaiCounter = 100;
+      tsaiBulletList = [];
+      chenStage = 0;
+      chenBulletList = [];
+  }
+  
+  function drawStage1() {
+      /* 背景 */
+      ctx.drawImage(stage1bgImage, 0, 0, ctx.canvas.width, ctx.canvas.height);
+      /* 顯示分數 */
+      ctx.font = "30px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = 'black';
+      ctx.fillText("" + score + " 萬劑", 0.89*canvas.width, 0.1*canvas.height);
+      /* 畫敵人 */
+      if (chenStage == 1 && chenCounter <= 50) {
+	  drawImageOnCenterXY(chenImage1, chenPos, [0.1, 0.1]);
+      } else {
+	  drawImageOnCenterXY(chenImage, chenPos, [0.1, 0.1]);
+      }	  
+      drawImageOnCenterXY(tsaiImage, tsaiPos, [0.1, 0.1]);
+      /* 畫主角 */
+      if (stage == 1) {
+	  drawImageOnCenterXY(jellyImage, jellyPos, [0.1, 0.1]);
+      } else if (stage == 2) {
+	  drawImageOnCenterXY(explodeImage, jellyPos, [0.1, 0.1]);
+      }
+      if (stage == 1 && gotVaccine) {
+	  drawImageOnCenterXY(vaccineImage, [jellyPos[0], jellyPos[1]-0.1],
+			      [0.04, 0.1]);
+      }
+      /* 畫子彈 */
+      for (i=0; i<tsaiBulletList.length; i++) {
+	  drawImageOnCenterXY(tsaiBulletImage, [tsaiBulletList[i].x, tsaiBulletList[i].y], [0.02, 0.015]);
+      }
+      for (i=0; i<chenBulletList.length; i++) {
+	  drawImageOnCenterXY(chenBulletImage, [chenBulletList[i].x, chenBulletList[i].y], [0.02, 0.02]);
+      }
+  }
+
+  function handleStage1KeyEvent() {
+      const step1 = 0.01;
+      if (keyMap[0] != 0) {
+	  if (jellyPos[1] >= stage1TalubanY) {
+	      jellyPos[1] = jellyPos[1] - step1;
+	  }
+      }
+      if (keyMap[1] != 0) {
+	  if (jellyPos[0] >= step1) {
+	      jellyPos[0] = jellyPos[0] - step1;
+	  }
+      }
+      if (keyMap[2] != 0) {
+	  if (jellyPos[1] + step1 < 1.0) {
+	      jellyPos[1] = jellyPos[1] + step1;
+	  }
+      }
+      if (keyMap[3] != 0) {
+	  if (jellyPos[0] + step1 < 1.0) {
+	      jellyPos[0] = jellyPos[0] + step1;
+	  }
+      }
+  }
+
+  function drawStage3() {
+      /* 背景 */
+      ctx.drawImage(stage3bgImage, 0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.font = "30px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "red";
+      ctx.fillText("你搬了" + score + " 萬劑", 0.5*canvas.width, 0.2*canvas.height);
+      ctx.fillText("但是離 1500 萬劑仍然有距離", 0.5*canvas.width, 0.35*canvas.height);
+      if (score > 0) {
+	  ctx.fillText("不過至少你拯救了 " + score/2 + " 萬人", 0.5*canvas.width, 0.5*canvas.height);
+      }
+      ctx.fillText("再玩一次 Replay", 0.5*canvas.width, 0.8*canvas.height);
+  }
+
+  function drawStage4() {
+      ctx.drawImage(stage4bgImage, 0, 0, ctx.canvas.width, ctx.canvas.height);
+      ctx.font = "30px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "red";
+      ctx.fillText("恭喜您破關了, 感謝您的遊玩", 0.5*canvas.width, 0.3*canvas.height);
+      ctx.fillText("感謝鴻海, 台積電, 慈濟捐贈 BNT 疫苗", 0.5*canvas.width, 0.5*canvas.height);
+      ctx.fillText("也感謝還想捐更多BNT但被政府擋下的那些公司組織法人", 0.5*canvas.width, 0.7*canvas.height);
+  }
+  
+  function draw() {
+      var i;
+      ctx.canvas.width  = window.innerWidth;
+      ctx.canvas.height = window.innerHeight;
+
+      if (stage == 0) {
+	  drawStage0();
+      } else if (stage == 1) {
+	  drawStage1();
+      } else if (stage == 2) {
+	  drawStage1();
+      } else if (stage == 3) {
+	  drawStage3();
+      } else if (stage == 4) {
+	  drawStage4();
+      }
+  }
+
+  function mainLoop() {
+      var i;
+      const stepTsai = 0.01;
+      const stepChen = 0.015;
+
+      if (stage == 0) {
+	  /* 遊戲起始畫面 */
+	  draw();
+      } else if (stage == 1) {
+	  /* 遊戲畫面 */
+	  /* 處理 keyboard event */
+	  handleStage1KeyEvent();
+	  if (jellyPos[0] < stage1ExportX) {
+	      /* 提貨區 */
+	      gotVaccine = true;
+	  } else if (jellyPos[0] > stage1ImportX) {
+	      /* 卸貨區 */
+	      if (gotVaccine) {
+		  score = score + 1;
+	      }
+	      gotVaccine = false;
+	  }
+	  /* 處理蔡的移動 */
+	  if (tsaiStage == 0) {
+	      if (tsaiPos[0] + tsaiDirection * stepTsai < stage1ExportX
+		  || tsaiPos[0] + tsaiDirection * stepTsai > stage1ImportX) {
+		  tsaiDirection = - tsaiDirection;
+	      } else {
+		  tsaiPos[0] = tsaiPos[0] + tsaiDirection * stepTsai;
+	      }
+	      tsaiCounter = tsaiCounter - 1;
+	      if (tsaiCounter < 0) {
+		  tsaiStage = 1;
+		  tsaiCounter = 150;
+	      }
+	  } else if (tsaiStage == 1) {
+	      tsaiCounter = tsaiCounter - 1;
+	      if (tsaiCounter <= 100) {
+		  var bullet1 = {
+		      'x': tsaiPos[0]-0.01,
+		      'y': tsaiPos[1]+(100-tsaiCounter)*0.01+0.02
+		  };
+		  if (bullet1.y < 1.0) {
+		      tsaiBulletList.push(bullet1);
+		  }
+	      }
+	      if (tsaiCounter < 0) {
+		  tsaiStage = 0;
+		  tsaiCounter = 100 + Math.random()*100;
+		  while (tsaiBulletList.length > 0) {
+		      tsaiBulletList.pop();
+		  }
+	      }
+	  }
+	  /* 處理陳的移動 */
+	  if (chenStage == 0) {
+	      if (chenPos[0] + chenDirection * stepChen < stage1ExportX
+		  || chenPos[0] + chenDirection * stepChen > stage1ImportX) {
+		  chenDirection = - chenDirection;
+	      } else {
+		  chenPos[0] = chenPos[0] + chenDirection * stepChen;
+	      }
+	      if (chenBulletList.length < score) {
+		  chenCounter = 100;
+		  chenStage = 1;
+	      }
+	  } else if (chenStage == 1) {
+	      const bulletSpeed = 0.01;
+	      var direction = 0;
+
+	      direction = Math.random()*360.0;
+	      
+	      chenCounter = chenCounter - 1;
+	      if (chenCounter == 50) {
+		  var bullet1 = {
+		      'x': chenPos[0],
+		      'y': stage1TalubanY+0.0001,
+		      'dx': bulletSpeed * Math.cos(direction/180.0),
+		      'dy': bulletSpeed * Math.sin(direction/180.0)
+		  };
+		  chenBulletList.push(bullet1);
+	      }
+	      if (chenCounter < 0) {
+		  chenStage = 0;
+	      }
+	  }
+	  /* 移動陳的子彈 */
+	  for (i=0; i<chenBulletList.length; i++) {
+	      if (chenBulletList[i].y < stage1TalubanY
+		  && chenBulletList[i].dy < 0) {
+		  chenBulletList[i].dy = -chenBulletList[i].dy;
+	      }
+	      if (chenBulletList[i].y >= 1.0
+		  && chenBulletList[i].dy > 0) {
+		  chenBulletList[i].dy = -chenBulletList[i].dy;
+	      }
+	      if (chenBulletList[i].x < stage1ExportX
+		  && chenBulletList[i].dx < 0) {
+		  chenBulletList[i].dx = -chenBulletList[i].dx;
+	      }
+	      if (chenBulletList[i].x > stage1ImportX
+		  && chenBulletList[i].dx > 0) {
+		  chenBulletList[i].dx = -chenBulletList[i].dx;
+	      }
+	      chenBulletList[i].x = chenBulletList[i].x + chenBulletList[i].dx;
+	      chenBulletList[i].y = chenBulletList[i].y + chenBulletList[i].dy;
+	  }
+	  /* 處理子彈跟主角的碰撞 */
+	  for (i=0; i<tsaiBulletList.length; i++) {
+	      var len2 = (tsaiBulletList[i].x - jellyPos[0]) *
+		  (tsaiBulletList[i].x - jellyPos[0]) +
+		  (tsaiBulletList[i].y - jellyPos[1]) *
+		  (tsaiBulletList[i].y - jellyPos[1]);
+	      if (len2 < 0.03*0.03) {
+		  stage2Counter = 120;
+		  stage = 2;
+	      }
+	  }
+	  for (i=0; i<chenBulletList.length; i++) {
+	      var len2 = (chenBulletList[i].x - jellyPos[0]) *
+		  (chenBulletList[i].x - jellyPos[0]) +
+		  (chenBulletList[i].y - jellyPos[1]) *
+		  (chenBulletList[i].y - jellyPos[1]);
+	      if (len2 < 0.03*0.03) {
+		  stage2Counter = 120;
+		  stage = 2;
+	      }
+	  }
+	  /* 處理破關 */
+	  if (score >= maxScore) {
+	      stage = 4;
+	  }
+	  draw();
+      } else if (stage == 2) {
+	  /* 被子彈殺死了 */
+	  stage2Counter = stage2Counter - 1;
+	  if (stage2Counter <= 0) {
+	      stage = 3;
+	  }
+	  draw();
+      } else if (stage == 3) {
+	  /* 壞結局 */
+	  draw();
+      } else if (stage == 4) {
+	  /* 好結局 */
+	  draw();
+      }
+  }
+
+  function init() {
+      canvas.addEventListener("mousedown", doMouseDown, false);
+      window.addEventListener("keydown", doKeyDown, false);
+      window.addEventListener("keyup", doKeyUp, false);
+      setInterval(mainLoop, 40);
+  }
+
+  init();
+</script>
+
   </body>
 </html>
