@@ -1,2 +1,15 @@
-# jelly-move-vaccine
-Small web game for Mr. Jelly to move Vaccine and avoid attacks from the government
+# 果凍先生搬疫苗
+
+首先感謝鴻海郭董, 台積電 還有慈濟 捐贈 BNT 疫苗. 但是我們這個政府現在又把捐贈的門給關了.
+讓其他企業再也無法捐 BNT. 所以我寫了一個小遊戲來酸政府. 謹此而已.
+
+遊玩網址 https://gracotw.github.io/jelly-move-vaccine/
+
+## 遊戲目標
+
+將疫苗從提貨區搬到卸貨區. 搬一次等於一萬劑, 搬 1500 次即破關. 搬的時候不可以處碰到敵人發出來的子彈.
+
+## 敵人
+
+ * 蔡母豬 - 因為進萊豬所以長了個豬鼻, 又常常說謊, 所以可以用說謊長出來的長鼻子來攻擊別人.
+ * 陳屍中 - 愛挖鼻孔超級不衛生. 會使用超彈力鼻屎攻擊人.
