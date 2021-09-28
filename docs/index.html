@@ -50,6 +50,7 @@
   var chenCounter = 100;
   var chenDirection = -1;
   var chenBulletList = [];
+  var stage1MouseDownPos = [ -1, -1];
   const maxScore = 1500;
 
   stage0bgImage.src = "stage0bgimage.png";
@@ -103,6 +104,9 @@
 	      initStage1();
 	      stage = 1;
 	  }
+      } else if (stage == 1) {
+	  stage1MouseDownPos[0] = xF;
+	  stage1MouseDownPos[1] = yF;
       } else if (stage == 3) {
 	  if (0.250950 <= xF && xF <= 0.756653
 	      && 0.719754 <= yF && yF <= 0.830015) {
@@ -110,7 +114,7 @@
 	      stage = 1;
 	  }
       }
-      console.log("x = "+xF+" y = "+yF);
+      //console.log("x = "+xF+" y = "+yF);
   }
 
   function drawStage0() {
@@ -136,6 +140,8 @@
       tsaiBulletList = [];
       chenStage = 0;
       chenBulletList = [];
+      stage1MouseDownPos[0] = -1;
+      stage1MouseDownPos[1] = -1;
   }
   
   function drawStage1() {
@@ -174,8 +180,69 @@
 
   function handleStage1KeyEvent() {
       const step1 = 0.01;
+      /* 處理滑鼠操作 */
+      if (keyMap[0] != 0 || keyMap[1] != 0 || keyMap[2] != 0 || keyMap[3] != 0) {
+	  /* 如果鍵盤有操作, 則忽略滑鼠的動作 */
+	  stage1MouseDownPos[0] = -1;
+	  stage1MouseDownPos[1] = -1;
+      } else if (stage1MouseDownPos[0] >= 0 && stage1MouseDownPos[1] >= 0) {
+	  var angle1;
+	  var dx;
+	  var dy;
+	  var nx;
+	  var ny;
+	  var dist1;
+	  var flag1;
+
+	  if (stage1MouseDownPos[0] == jellyPos[0]
+	      && stage1MouseDownPos[1] == jellyPos[1]) {
+	      stage1MouseDownPos[0] = -1;
+	      stage1MouseDownPos[1] = -1;
+	      return;
+	  }
+
+	  /* 如果果凍跟滑鼠距離過近, 則直接跳到滑鼠位置 */
+	  dist1 = (jellyPos[0] - stage1MouseDownPos[0])*(jellyPos[0] - stage1MouseDownPos[0])
+	      + (jellyPos[1] - stage1MouseDownPos[1])*(jellyPos[1] - stage1MouseDownPos[1]);
+	  if (dist1 <= step1 * step1) {
+	      if (stage1MouseDownPos[0] > 0 && stage1MouseDownPos[0] < 1.0) {
+		  jellyPos[0] = stage1MouseDownPos[0];
+	      }
+	      if (stage1MouseDownPos[1] > stage1TalubanY && stage1MouseDownPos[1] < 1.0) {
+		  jellyPos[1] = stage1MouseDownPos[1];
+	      }
+	      stage1MouseDownPos[0] = -1;
+	      stage1MouseDownPos[1] = -1;
+	      return;
+	  }
+
+	  /* 計算角度 */
+	  angle1 = Math.atan2(stage1MouseDownPos[1] - jellyPos[1],
+			      stage1MouseDownPos[0] - jellyPos[0]);
+	  /* 計算 xy 差異 */
+	  dx = step1 * Math.cos(angle1);
+	  dy = step1 * Math.sin(angle1);
+	  /* 計算新位置 */
+	  nx = jellyPos[0] + dx;
+	  ny = jellyPos[1] + dy;
+	  flag1 = false;
+	  if (nx > 0 && nx < 1.0) {
+	      jellyPos[0] = nx;
+	      flag1 = true;
+	  }
+	  if (ny > stage1TalubanY && ny < 1.0) {
+	      jellyPos[1] = ny;
+	      flag1 = true;
+	  }
+	  if (! flag1) {
+	      /* 如果位置沒變, 則取消滑鼠目標位置 */
+	      stage1MouseDownPos[0] = -1;
+	      stage1MouseDownPos[1] = -1;
+	  }
+      }
+      /* 處理鍵盤操作 */
       if (keyMap[0] != 0) {
-	  if (jellyPos[1] >= stage1TalubanY) {
+	  if (jellyPos[1] - step1 >= stage1TalubanY) {
 	      jellyPos[1] = jellyPos[1] - step1;
 	  }
       }
