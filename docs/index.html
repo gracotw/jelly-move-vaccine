@@ -51,6 +51,8 @@
   var chenDirection = -1;
   var chenBulletList = [];
   var stage1MouseDownPos = [ -1, -1];
+  var stage0MouseOnStartButton = false;
+  var stage3MouseOnRestartButton = false;
   const maxScore = 1500;
 
   stage0bgImage.src = "stage0bgimage.png";
@@ -117,8 +119,47 @@
       //console.log("x = "+xF+" y = "+yF);
   }
 
+  function doMouseMove(e) {
+      var bbox = canvas.getBoundingClientRect();
+      var x = e.x - bbox.left *(canvas.width / bbox.width);
+      var y = e.y - bbox.top  * (canvas.height / bbox.height);
+
+      var xF = x/canvas.width;
+      var yF = y/canvas.height;
+
+      if (stage == 0) {
+	  if (0.308383 <= xF && xF <= 0.706586
+	      && 0.620414 <= yF && yF <= 0.917065 ) {
+	      stage0MouseOnStartButton = true;
+	  } else {
+	      stage0MouseOnStartButton = false;
+	  }
+      } else if (stage == 3) {
+	  if (0.250950 <= xF && xF <= 0.756653
+	      && 0.719754 <= yF && yF <= 0.830015) {
+	      stage3MouseOnRestartButton = true;
+	  } else {
+	      stage3MouseOnRestartButton = false;
+	  }
+      } else {
+	  stage0MouseOnStartButton = false;
+	  stage3MouseOnRestartButton = false;
+      }
+  }
+
   function drawStage0() {
       ctx.drawImage(stage0bgImage, 0, 0, ctx.canvas.width, ctx.canvas.height);
+      if (stage0MouseOnStartButton) {
+	  ctx.beginPath();
+	  ctx.moveTo(0.308383 * ctx.canvas.width, 0.620414 * ctx.canvas.height);
+	  ctx.lineTo(0.706586 * ctx.canvas.width, 0.620414 * ctx.canvas.height);
+	  ctx.lineTo(0.706586 * ctx.canvas.width, 0.917065 * ctx.canvas.height);
+	  ctx.lineTo(0.308383 * ctx.canvas.width, 0.917065 * ctx.canvas.height);
+	  ctx.lineTo(0.308383 * ctx.canvas.width, 0.620414 * ctx.canvas.height);
+	  ctx.strokeStyle = 'magenta';
+	  ctx.lineWidth = 5;
+	  ctx.stroke();
+      }
   }
 
   function drawImageOnCenterXY(img, pos, s) {
@@ -273,6 +314,9 @@
       ctx.fillText("但是離 1500 萬劑仍然有距離", 0.5*canvas.width, 0.35*canvas.height);
       if (score > 0) {
 	  ctx.fillText("不過至少你拯救了 " + score/2 + " 萬人", 0.5*canvas.width, 0.5*canvas.height);
+      }
+      if (stage3MouseOnRestartButton) {
+	  ctx.fillStyle = "magenta";
       }
       ctx.fillText("再玩一次 Replay", 0.5*canvas.width, 0.8*canvas.height);
   }
@@ -456,6 +500,7 @@
 
   function init() {
       canvas.addEventListener("mousedown", doMouseDown, false);
+      canvas.addEventListener("mousemove", doMouseMove, false);
       window.addEventListener("keydown", doKeyDown, false);
       window.addEventListener("keyup", doKeyUp, false);
       setInterval(mainLoop, 40);
